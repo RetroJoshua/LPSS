@@ -6,7 +6,7 @@ arguments and displays all the lines between the given line numbers.
 supplied as arguments to it.
 3. Write a shell script that displays a list of all files in the current directory to which the
 user has read, write and execute permissions.
-4. Write a C program to implement ―ls –ls‖ command.
+4. Write a C program to implement 'ls –ls' command.
 5. Write a C program which creates a child process and the parent waits for child‘s exit.
 6. Write a C program to demonstrate the difference between the fork and vfork system
 calls.
@@ -28,8 +28,8 @@ the message queue
 f) Server retrieves the service request from the Message queue and inserts
 the reply
 g) Intended Client retrieves the response.
-12. Implement client/server model using socket API
-13. Implement a concurrent server using fork based model while avoiding the zombie state
+13. Implement client/server model using socket API
+14. Implement a concurrent server using fork based model while avoiding the zombie state
 of the client.
-14. Implement a concurrent server model using pthread API
+15. Implement a concurrent server model using pthread API
 15.Solve the producer consumer problem using pthread API
