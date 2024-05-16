@@ -15,13 +15,13 @@ The receiver program reads from fifo_sender_to_receiver and writes to fifo_recei
 
 Step 4: Compile and Run
 Compile both programs:
-/***
+```
 gcc sender.c -o sender
 gcc receiver.c -o receiver
-***/
+```
 
 Run the programs in separate terminal windows:
-/***
+```
 ./receiver
 ./sender
-***/
+```
