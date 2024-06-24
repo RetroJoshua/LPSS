@@ -18,7 +18,7 @@
     e) Process 4 seeks ‗iseven‘ service form the server by inserting the payload in the message queue
     f) Server retrieves the service request from the Message queue and inserts the reply
     g) Intended Client retrieves the response.
-13. Implement client/server model using socket API
-14. Implement a concurrent server using fork based model while avoiding the zombie state of the client.
-15. Implement a concurrent server model using pthread API
-16.Solve the producer consumer problem using pthread API
+12. Implement client/server model using socket API
+13. Implement a concurrent server using fork based model while avoiding the zombie state of the client.
+14. Implement a concurrent server model using pthread API
+15. Solve the producer consumer problem using pthread API
