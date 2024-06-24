@@ -4,6 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #define PORT 8080
 #define MAX 1024
@@ -45,11 +47,18 @@ void handle_client(int new_socket) {
     close(new_socket);
 }
 
+void sigchld_handler(int s) {
+    // Wait for all dead processes
+    // We use a loop to handle all terminated children
+    while (waitpid(-1, NULL, WNOHANG) > 0);
+}
+
 int main() {
     int server_fd, new_socket;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
+    struct sigaction sa;
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
@@ -82,17 +91,32 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    // Set up the signal handler for SIGCHLD
+    sa.sa_handler = sigchld_handler; // Reap all dead processes
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART; // Restart interrupted system calls
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(1);
+    }
+
     printf("Server listening on port %d\n", PORT);
 
     while (1) {
         // Accept an incoming connection
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
             perror("accept");
-            close(server_fd);
-            exit(EXIT_FAILURE);
+            continue;
         }
 
-        handle_client(new_socket);
+        // Fork a new process to handle the client
+        if (!fork()) {
+            // Child process
+            close(server_fd); // Close the listening socket in the child process
+            handle_client(new_socket);
+            exit(0);
+        }
+        close(new_socket); // Parent process closes the connected socket
     }
 
     return 0;
