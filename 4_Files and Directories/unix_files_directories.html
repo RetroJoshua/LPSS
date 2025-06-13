@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNIX Files and Directories</title>
+
+    <!-- RevealJS CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --standard-gap: 20px;
+            --standard-padding: 24px;
+            --border-radius: 12px;
+
+            /* Adaptive Color System */
+            --color-primary: #3b82f6;
+            --color-secondary: #1e3a8a;
+            --color-accent: #60a5fa;
+            --color-text-light: #f8fafc;
+            --color-text-dark: #1f2937;
+            --color-bg-light: #ffffff;
+            --color-bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            --color-bg-card-glass: rgba(255, 255, 255, 0.15);
+            --color-border-glass: rgba(255, 255, 255, 0.3);
+            --color-border-subtle: rgba(0, 0, 0, 0.1);
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--color-bg-gradient);
+            color: var(--color-text-dark);
+        }
+
+        .reveal {
+            font-size: 28px;
+            color: var(--color-text-dark);
+        }
+
+        .slide-content {
+            width: 1200px;
+            height: 700px;
+            display: grid;
+            grid-template-rows: minmax(50px, auto) minmax(1fr, 80%) minmax(50px, auto);
+            gap: var(--standard-gap);
+        }
+
+        .slide-header, .slide-footer {
+            padding: 0 var(--standard-padding);
+            display: flex;
+            align-items: center;
+        }
+
+        .slide-header {
+            border-bottom: 2px solid var(--color-primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .slide-footer {
+            border-top: 1px solid var(--color-border-subtle);
+            justify-content: space-between;
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .slide-body {
+            overflow: hidden;
+            min-height: 0;
+            padding: var(--standard-padding);
+        }
+
+        .slide-number {
+            left: 12px !important;
+            bottom: 12px !important;
+            color: var(--color-text-dark);
+            opacity: 0.7;
+        }
+
+        /* Typography for autofit contexts */
+        .autofit h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 0.5em;
+            text-align: center;
+        }
+        .autofit h2 {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: var(--color-secondary);
+            margin-bottom: 0.4em;
+        }
+        .autofit h3 {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 0.3em;
+            color: var(--color-primary);
+        }
+        .autofit p {
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 0.75em;
+        }
+        .autofit ul, .autofit ol {
+            font-size: 1em;
+            margin-left: 1.2em;
+            margin-bottom: 0.75em;
+        }
+        .autofit li {
+            margin-bottom: 0.25em;
+            line-height: 1.5;
+        }
+        .autofit a {
+            color: var(--color-accent);
+            text-decoration: none;
+        }
+        .autofit a:hover {
+            text-decoration: underline;
+            opacity: 0.8;
+        }
+        .autofit code {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+        .autofit pre {
+            background: rgba(31, 41, 55, 0.95);
+            color: var(--color-text-light);
+            padding: 1em;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+            margin: 0.75em 0;
+            font-size: 0.8em;
+            line-height: 1.4;
+        }
+
+        /* Grid Layouts */
+        .two-column {
+            display: grid;
+            grid-template-columns: 48% 48%;
+            gap: var(--standard-gap);
+            min-height: 0;
+            height: 100%;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 31% 31% 31%;
+            gap: var(--standard-gap);
+            min-height: 0;
+            height: 100%;
+        }
+
+        .four-column {
+            display: grid;
+            grid-template-columns: 23% 23% 23% 23%;
+            gap: var(--standard-gap);
+            min-height: 0;
+            height: 100%;
+        }
+
+        /* Content Cards */
+        .content-card {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            padding: var(--standard-padding);
+            backdrop-filter: blur(20px);
+            background: var(--color-bg-card-glass);
+            border: 1px solid var(--color-border-glass);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--color-accent);
+        }
+
+        .content-card .autofit {
+            min-height: 0;
+            flex-grow: 1;
+        }
+
+        /* Chart containers */
+        .chart-container {
+            min-height: 0;
+            position: relative;
+            height: 100%;
+            padding: var(--standard-padding);
+            backdrop-filter: blur(20px);
+            background: var(--color-bg-card-glass);
+            border: 1px solid var(--color-border-glass);
+            border-radius: var(--border-radius);
+        }
+
+        /* Table styling */
+        .table-wrapper {
+            height: 100%;
+            overflow: hidden;
+            background: var(--color-bg-card-glass);
+            border: 1px solid var(--color-border-glass);
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-wrapper .autofit {
+            padding: var(--standard-padding);
+            overflow: auto;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        .table-wrapper .autofit > table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .table-wrapper .autofit > table th,
+        .table-wrapper .autofit > table td {
+            border: 1px solid var(--color-border-subtle);
+            padding: 0.5em 0.75em;
+            word-wrap: break-word;
+            text-align: left;
+        }
+
+        .table-wrapper .autofit > table th {
+            background-color: rgba(59, 130, 246, 0.1);
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .table-wrapper .autofit > table tbody tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        /* Images */
+        img.slide-image {
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            margin: auto;
+            border-radius: calc(var(--border-radius) / 2);
+        }
+
+        .content-card img.slide-image {
+            max-height: calc(100% - 2 * var(--standard-padding));
+        }
+
+        /* Icons */
+        .icon-bullet {
+            color: var(--color-accent);
+            margin-right: 0.5em;
+            width: 1.2em;
+            display: inline-block;
+        }
+
+        /* Title slide specific */
+        .title-slide {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--color-text-light);
+        }
+
+        .title-slide .slide-content {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title-slide .autofit h1 {
+            color: var(--color-text-light);
+            font-size: 3em;
+            margin-bottom: 0.3em;
+        }
+
+        .title-slide .autofit p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 0.5em;
+        }
+
+        /* Highlight boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, var(--color-accent), var(--color-primary));
+            color: var(--color-text-light);
+            padding: 1em;
+            border-radius: var(--border-radius);
+            margin: 0.5em 0;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: var(--color-text-light);
+            padding: 1em;
+            border-radius: var(--border-radius);
+            margin: 0.5em 0;
+        }
+
+        /* Animated elements */
+        .animated-item {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .reveal .slides section.present .animated-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal .slides section.present .animated-item:nth-child(2) {
+            transition-delay: 0.1s;
+        }
+        .reveal .slides section.present .animated-item:nth-child(3) {
+            transition-delay: 0.2s;
+        }
+        .reveal .slides section.present .animated-item:nth-child(4) {
+            transition-delay: 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Title Slide -->
+            <section class="title-slide">
+                <div class="slide-content">
+                    <div class="slide-header"></div>
+                    <div class="slide-body">
+                        <div class="autofit">
+                            <h1><i class="fas fa-server"></i> UNIX Files and Directories</h1>
+                            <p>Foundational Concepts in File System Programming</p>
+                            <p style="font-size: 0.9em; margin-top: 1em;">Based on Advanced Programming in the UNIX Environment (APUE) - Chapter 4</p>
+                        </div>
+                    </div>
+                    <div class="slide-footer"></div>
+                </div>
+            </section>
+
+            <!-- Slide 1: Topics Covered Today -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2>Topics Covered Today</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <ul>
+                                        <li><i class="fas fa-folder-open icon-bullet"></i>Introduction to UNIX File Systems</li>
+                                        <li><i class="fas fa-file icon-bullet"></i>File Types and Classification (7 types)</li>
+                                        <li><i class="fas fa-lock icon-bullet"></i>File Permissions and Access Control</li>
+                                        <li><i class="fas fa-sitemap icon-bullet"></i>Directory Structure and Operations</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <ul>
+                                        <li><i class="fas fa-info-circle icon-bullet"></i>File Metadata and the stat Structure</li>
+                                        <li><i class="fas fa-database icon-bullet"></i>Inodes and File System Organization</li>
+                                        <li><i class="fas fa-code icon-bullet"></i>Essential System Calls and Functions</li>
+                                        <li><i class="fas fa-shield-alt icon-bullet"></i>Best Practices and Security Considerations</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Overview of comprehensive file system programming concepts</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 2: "Everything is a File" -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-file-alt"></i> "Everything is a File"</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Core Philosophy</h3>
+                                    <ul>
+                                        <li><i class="fas fa-check icon-bullet"></i>Uniform interface for all resources</li>
+                                        <li><i class="fas fa-network-wired icon-bullet"></i>Files, directories, devices, pipes, sockets - all treated uniformly</li>
+                                        <li><i class="fas fa-tree icon-bullet"></i>Hierarchical file system structure starting from root (/)</li>
+                                        <li><i class="fas fa-layer-group icon-bullet"></i>File system provides abstraction layer over physical storage</li>
+                                        <li><i class="fas fa-magic icon-bullet"></i>Simplifies programming model and system design</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <img src="https://cdn.abacus.ai/images/a39d1eb7-bb34-4d44-969d-263d1e22ee5c.png" class="slide-image" alt="UNIX File System Hierarchy">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Uniform interface simplifies system programming</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 3: Complete File Type Classification -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-list"></i> Complete File Type Classification</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Seven File Types</h3>
+                                    <ol>
+                                        <li><i class="fas fa-file icon-bullet"></i><strong>Regular files</strong> - User data (text, binary, executables)</li>
+                                        <li><i class="fas fa-folder icon-bullet"></i><strong>Directory files</strong> - Container for other files</li>
+                                        <li><i class="fas fa-keyboard icon-bullet"></i><strong>Character special files</strong> - Unbuffered device access</li>
+                                        <li><i class="fas fa-hdd icon-bullet"></i><strong>Block special files</strong> - Buffered device access</li>
+                                        <li><i class="fas fa-exchange-alt icon-bullet"></i><strong>FIFO (named pipes)</strong> - Inter-process communication</li>
+                                        <li><i class="fas fa-plug icon-bullet"></i><strong>Socket files</strong> - Network communication</li>
+                                        <li><i class="fas fa-link icon-bullet"></i><strong>Symbolic links</strong> - References to other files</li>
+                                    </ol>
+                                </div>
+                            </div>
+                            <div class="chart-container animated-item">
+                                <canvas id="fileTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Each file type serves specific purposes in system programming</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: Regular Files -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-file"></i> Regular Files - The Foundation</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Characteristics</h3>
+                                    <ul>
+                                        <li><i class="fas fa-star icon-bullet"></i>Most common file type in UNIX systems</li>
+                                        <li><i class="fas fa-database icon-bullet"></i>Contains user data: text, binary, executable programs</li>
+                                        <li><i class="fas fa-code icon-bullet"></i>No special structure imposed by kernel</li>
+                                        <li><i class="fas fa-cog icon-bullet"></i>Applications interpret file contents based on context</li>
+                                        <li><i class="fas fa-list-ul icon-bullet"></i>Examples: source code, documents, images, libraries, executables</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Code Example</h3>
+                                    <pre>struct stat buf;
+if (stat("filename", &buf) == 0) {
+    if (S_ISREG(buf.st_mode)) {
+        printf("Regular file: %ld bytes\n",
+               buf.st_size);
+    }
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Regular files are byte streams interpreted by applications</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Directory Files -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-folder-open"></i> Directory Files - File System Organization</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Directory Properties</h3>
+                                    <ul>
+                                        <li><i class="fas fa-link icon-bullet"></i>Contains names of other files and pointers to their information</li>
+                                        <li><i class="fas fa-lock icon-bullet"></i>Only kernel can write to directory files directly</li>
+                                        <li><i class="fas fa-book icon-bullet"></i>Users read directories through library functions</li>
+                                        <li><i class="fas fa-folder icon-bullet"></i>Every directory contains minimum two entries: "." (self) and ".." (parent)</li>
+                                        <li><i class="fas fa-hashtag icon-bullet"></i>Directory entries map filenames to inode numbers</li>
+                                    </ul>
+
+                                    <h3>Essential Functions</h3>
+                                    <pre>DIR *opendir(const char *pathname);
+struct dirent *readdir(DIR *dp);
+int closedir(DIR *dp);
+int mkdir(const char *pathname, mode_t mode);
+int rmdir(const char *pathname);</pre>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <img src="https://cdn.abacus.ai/images/4800e5e3-4fcb-48e0-a8a9-6a26c520b1e5.png" class="slide-image" alt="Directory Structure Diagram">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Directories maintain the file system hierarchy</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: Character and Block Special Files -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-microchip"></i> Character and Block Special Files</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Character Special Files</h3>
+                                    <ul>
+                                        <li><i class="fas fa-stream icon-bullet"></i>Provide unbuffered I/O access to devices</li>
+                                        <li><i class="fas fa-font icon-bullet"></i>Data transferred one character at a time</li>
+                                        <li><i class="fas fa-terminal icon-bullet"></i>Examples: terminals (/dev/tty), serial ports, keyboards</li>
+                                        <li><i class="fas fa-direct icon-bullet"></i>Direct device communication</li>
+                                    </ul>
+
+                                    <h3>Block Special Files</h3>
+                                    <ul>
+                                        <li><i class="fas fa-buffer icon-bullet"></i>Provide buffered I/O access to devices</li>
+                                        <li><i class="fas fa-cube icon-bullet"></i>Data transferred in fixed-size blocks (typically 512 bytes)</li>
+                                        <li><i class="fas fa-hdd icon-bullet"></i>Examples: disk drives (/dev/sda1), tape drives</li>
+                                        <li><i class="fas fa-memory icon-bullet"></i>Kernel manages buffering for efficiency</li>
+                                    </ul>
+
+                                    <div class="highlight-box">
+                                        <strong>Device Numbers:</strong> Major (driver) + Minor (specific device)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <img src="https://cdn.abacus.ai/images/5d0eeab0-5f5e-4bd1-89a4-678586eb1c4f.png" class="slide-image" alt="Device Files Comparison">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Device files provide uniform interface to hardware</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 7: FIFO and Socket Files -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-exchange-alt"></i> FIFO and Socket Files</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>FIFO (Named Pipes)</h3>
+                                    <ul>
+                                        <li><i class="fas fa-arrow-right icon-bullet"></i>First In, First Out communication mechanism</li>
+                                        <li><i class="fas fa-file icon-bullet"></i>Appears as regular file in file system</li>
+                                        <li><i class="fas fa-users icon-bullet"></i>Enables communication between unrelated processes</li>
+                                        <li><i class="fas fa-plus icon-bullet"></i>Created with mkfifo() function</li>
+                                    </ul>
+
+                                    <h3>Socket Files</h3>
+                                    <ul>
+                                        <li><i class="fas fa-network-wired icon-bullet"></i>Used for network and local inter-process communication</li>
+                                        <li><i class="fas fa-desktop icon-bullet"></i>UNIX domain sockets for local communication</li>
+                                        <li><i class="fas fa-globe icon-bullet"></i>Network sockets for remote communication</li>
+                                        <li><i class="fas fa-expand-arrows-alt icon-bullet"></i>More flexible than FIFOs</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Code Examples</h3>
+                                    <pre>// Creating a FIFO
+int mkfifo(const char *pathname, mode_t mode);
+
+// Creating a socket
+int socket(int domain, int type, int protocol);
+
+// Example FIFO usage
+if (mkfifo("/tmp/myfifo", 0666) < 0) {
+    err_sys("mkfifo error");
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Enable sophisticated inter-process communication</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Link Types Comparison -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-link"></i> Link Types Comparison</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Symbolic Links (Soft Links)</h3>
+                                    <ul>
+                                        <li><i class="fas fa-file-alt icon-bullet"></i>File containing pathname of another file</li>
+                                        <li><i class="fas fa-globe icon-bullet"></i>Can span different file systems</li>
+                                        <li><i class="fas fa-unlink icon-bullet"></i>Can point to non-existent files (dangling links)</li>
+                                        <li><i class="fas fa-clock icon-bullet"></i>Resolved at runtime</li>
+                                        <li><i class="fas fa-hashtag icon-bullet"></i>Has its own inode</li>
+                                    </ul>
+
+                                    <h3>Hard Links</h3>
+                                    <ul>
+                                        <li><i class="fas fa-copy icon-bullet"></i>Multiple directory entries for same inode</li>
+                                        <li><i class="fas fa-ban icon-bullet"></i>Cannot span file systems</li>
+                                        <li><i class="fas fa-folder-minus icon-bullet"></i>Cannot link to directories (usually)</li>
+                                        <li><i class="fas fa-equals icon-bullet"></i>All links equivalent - no "original"</li>
+                                    </ul>
+
+                                    <pre>int symlink(const char *actualpath,
+            const char *sympath);
+int link(const char *existingpath,
+         const char *newpath);
+int readlink(const char *pathname,
+             char *buf, size_t bufsize);</pre>
+                                </div>
+                            </div>
+                            <div class="chart-container animated-item">
+                                <canvas id="linkComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Understanding link types prevents common programming pitfalls</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 9: UNIX Permission Architecture -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-shield-alt"></i> UNIX Permission Architecture</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Permission Structure</h3>
+                                    <ul>
+                                        <li><i class="fas fa-key icon-bullet"></i>Three permission types: read (r), write (w), execute (x)</li>
+                                        <li><i class="fas fa-users icon-bullet"></i>Three user categories: owner (u), group (g), others (o)</li>
+                                        <li><i class="fas fa-binary icon-bullet"></i>Represented as 9-bit pattern plus 3 special bits</li>
+                                        <li><i class="fas fa-calculator icon-bullet"></i>Octal notation commonly used (e.g., 755, 644)</li>
+                                    </ul>
+
+                                    <h3>Permission Bit Layout</h3>
+                                    <pre>rwxrwxrwx
+|||||||++-- others permissions (o)
+||||+++---- group permissions (g)
+|+++------- owner permissions (u)</pre>
+
+                                    <h3>Examples</h3>
+                                    <ul>
+                                        <li><code>755 = rwxr-xr-x</code> (owner: rwx, group: r-x, others: r-x)</li>
+                                        <li><code>644 = rw-r--r--</code> (owner: rw-, group: r--, others: r--)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <img src="https://cdn.abacus.ai/images/f9a476da-4a45-4289-93b7-ff206f7115e6.png" class="slide-image" alt="Permission Bit Diagram">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Fine-grained access control through bit patterns</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 10: Context-Dependent Permission Interpretation -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-context"></i> Context-Dependent Permission Interpretation</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>For Regular Files</h3>
+                                    <ul>
+                                        <li><i class="fas fa-eye icon-bullet"></i><strong>Read (r):</strong> Can read file contents</li>
+                                        <li><i class="fas fa-edit icon-bullet"></i><strong>Write (w):</strong> Can modify file contents</li>
+                                        <li><i class="fas fa-play icon-bullet"></i><strong>Execute (x):</strong> Can execute file as program</li>
+                                    </ul>
+
+                                    <h3>For Directories</h3>
+                                    <ul>
+                                        <li><i class="fas fa-list icon-bullet"></i><strong>Read (r):</strong> Can list directory contents (ls)</li>
+                                        <li><i class="fas fa-plus icon-bullet"></i><strong>Write (w):</strong> Can create/delete files in directory</li>
+                                        <li><i class="fas fa-search icon-bullet"></i><strong>Execute (x):</strong> Can access files in directory (search permission)</li>
+                                    </ul>
+
+                                    <div class="warning-box">
+                                        <i class="fas fa-exclamation-triangle"></i> <strong>Critical:</strong> Directory execute permission required to access files within, even if file permissions allow access.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Example Scenarios</h3>
+                                    <ul>
+                                        <li><i class="fas fa-folder icon-bullet"></i><strong>Directory: r-x</strong><br>Can list and access, cannot modify</li>
+                                        <li><i class="fas fa-folder icon-bullet"></i><strong>Directory: -wx</strong><br>Can access and modify, cannot list</li>
+                                        <li><i class="fas fa-folder icon-bullet"></i><strong>Directory: r--</strong><br>Can list but cannot access files</li>
+                                    </ul>
+
+                                    <pre>// Check directory access
+if (access("/some/directory", X_OK) == 0) {
+    printf("Can traverse directory\n");
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Directory permissions control traversal, not execution</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 11: Advanced Permission Controls -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-crown"></i> Advanced Permission Controls</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="three-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Set-User-ID (SUID)</h3>
+                                    <p><strong>Bit 04000</strong></p>
+                                    <ul>
+                                        <li><i class="fas fa-user-shield icon-bullet"></i>Executable runs with file owner's privileges</li>
+                                        <li><i class="fas fa-key icon-bullet"></i>Example: passwd command runs as root</li>
+                                        <li><i class="fas fa-exclamation-triangle icon-bullet"></i>Security implications significant</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Set-Group-ID (SGID)</h3>
+                                    <p><strong>Bit 02000</strong></p>
+                                    <ul>
+                                        <li><i class="fas fa-users icon-bullet"></i>Executable runs with file group's privileges</li>
+                                        <li><i class="fas fa-folder-plus icon-bullet"></i>For directories: new files inherit directory's group</li>
+                                        <li><i class="fas fa-project-diagram icon-bullet"></i>Useful for shared project directories</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Sticky Bit</h3>
+                                    <p><strong>Bit 01000</strong></p>
+                                    <ul>
+                                        <li><i class="fas fa-trash-alt icon-bullet"></i>For directories: only file owner can delete/rename files</li>
+                                        <li><i class="fas fa-folder-open icon-bullet"></i>Example: /tmp directory</li>
+                                        <li><i class="fas fa-shield-alt icon-bullet"></i>Prevents users from deleting others' files</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="warning-box" style="margin-top: var(--standard-gap);">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Security Warning:</strong> SUID/SGID programs require careful security review
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Special bits provide privilege escalation but introduce security risks</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 12: Essential Permission Functions -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-tools"></i> Essential Permission Functions</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="three-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Access Testing</h3>
+                                    <pre>int access(const char *pathname,
+           int mode);
+// Modes: R_OK, W_OK, X_OK, F_OK</pre>
+                                    <p>Tests real user permissions, not effective user permissions.</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Permission Modification</h3>
+                                    <pre>int chmod(const char *pathname,
+          mode_t mode);
+int fchmod(int filedes,
+           mode_t mode);</pre>
+                                    <p>Changes file permission bits. fchmod() works on open file descriptors.</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Ownership Changes</h3>
+                                    <pre>int chown(const char *pathname,
+          uid_t owner, gid_t group);
+int fchown(int filedes,
+           uid_t owner, gid_t group);
+int lchown(const char *pathname,
+           uid_t owner, gid_t group);</pre>
+                                    <p>lchown() doesn't follow symbolic links.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Always check return values for errors</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 13: File Creation Mask -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-mask"></i> File Creation Mask</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>umask Concept</h3>
+                                    <ul>
+                                        <li><i class="fas fa-minus-circle icon-bullet"></i>umask specifies which permission bits are turned OFF for new files</li>
+                                        <li><i class="fas fa-magic icon-bullet"></i>Applied automatically when creating files and directories</li>
+                                        <li><i class="fas fa-family icon-bullet"></i>Inherited by child processes</li>
+                                        <li><i class="fas fa-list-ol icon-bullet"></i>Common values: 022 (removes group/other write), 077 (removes all group/other)</li>
+                                    </ul>
+
+                                    <h3>Function</h3>
+                                    <pre>mode_t umask(mode_t cmask);</pre>
+
+                                    <h3>Example</h3>
+                                    <pre>umask(S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+// Equivalent to umask(022) in octal
+// New files: 644, New directories: 755</pre>
+
+                                    <div class="highlight-box">
+                                        <strong>Calculation:</strong> Final permissions = Requested permissions & ~umask
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-container animated-item">
+                                <canvas id="umaskChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>umask is crucial for security - follow principle of least privilege</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 14: Complete File Information Container -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-info-circle"></i> Complete File Information Container</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="content-card animated-item">
+                            <div class="autofit">
+                                <h3>struct stat - The Complete File Metadata Container</h3>
+                                <pre>struct stat {
+    mode_t    st_mode;     /* file type & permissions */
+    ino_t     st_ino;      /* inode number */
+    dev_t     st_dev;      /* device number */
+    dev_t     st_rdev;     /* device number for special files */
+    nlink_t   st_nlink;    /* number of hard links */
+    uid_t     st_uid;      /* user ID of owner */
+    gid_t     st_gid;      /* group ID of owner */
+    off_t     st_size;     /* size in bytes */
+    time_t    st_atime;    /* last access time */
+    time_t    st_mtime;    /* last modification time */
+    time_t    st_ctime;    /* last status change time */
+    blksize_t st_blksize;  /* optimal I/O block size */
+    blkcnt_t  st_blocks;   /* number of 512-byte blocks */
+};</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>The stat structure contains all file metadata</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 15: Obtaining File Information -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-search"></i> Obtaining File Information</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Three Main Functions</h3>
+                                    <pre>int stat(const char *pathname,
+         struct stat *buf);
+int fstat(int filedes,
+          struct stat *buf);
+int lstat(const char *pathname,
+          struct stat *buf);</pre>
+
+                                    <h3>Key Differences</h3>
+                                    <ul>
+                                        <li><i class="fas fa-link icon-bullet"></i><strong>stat():</strong> Follows symbolic links (returns target info)</li>
+                                        <li><i class="fas fa-unlink icon-bullet"></i><strong>lstat():</strong> Does NOT follow symbolic links (returns link info)</li>
+                                        <li><i class="fas fa-file icon-bullet"></i><strong>fstat():</strong> Operates on open file descriptor</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Usage Pattern</h3>
+                                    <pre>struct stat buf;
+if (lstat(pathname, &buf) < 0) {
+    err_sys("lstat error for %s", pathname);
+}
+// Process buf contents...
+
+// Check if it's a regular file
+if (S_ISREG(buf.st_mode)) {
+    printf("Regular file of size %ld\n", buf.st_size);
+}
+
+// Check permissions
+if (buf.st_mode & S_IRUSR) {
+    printf("Owner has read permission\n");
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Choose the right stat function based on symbolic link handling needs</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 16: Determining File Types from st_mode -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-filter"></i> Determining File Types from st_mode</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Standard Macros</h3>
+                                    <pre>S_ISREG(m)   /* regular file? */
+S_ISDIR(m)   /* directory? */
+S_ISCHR(m)   /* character special? */
+S_ISBLK(m)   /* block special? */
+S_ISFIFO(m)  /* FIFO (named pipe)? */
+S_ISLNK(m)   /* symbolic link? */
+S_ISSOCK(m)  /* socket? */</pre>
+                                    <p>These macros provide portable way to test file types across different UNIX systems.</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Complete Example</h3>
+                                    <pre>struct stat buf;
+if (lstat(pathname, &buf) < 0)
+    err_ret("lstat error");
+
+if (S_ISREG(buf.st_mode))
+    printf("regular file");
+else if (S_ISDIR(buf.st_mode))
+    printf("directory");
+else if (S_ISLNK(buf.st_mode))
+    printf("symbolic link");
+else if (S_ISCHR(buf.st_mode))
+    printf("character special");
+else if (S_ISBLK(buf.st_mode))
+    printf("block special");
+else if (S_ISFIFO(buf.st_mode))
+    printf("FIFO");
+else if (S_ISSOCK(buf.st_mode))
+    printf("socket");
+else
+    printf("unknown file type");</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Always use macros rather than bit manipulation for portability</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 17: Understanding Inodes -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-database"></i> Understanding Inodes</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>What is an Inode?</h3>
+                                    <ul>
+                                        <li><i class="fas fa-hashtag icon-bullet"></i><strong>Index node:</strong> data structure containing file metadata</li>
+                                        <li><i class="fas fa-fingerprint icon-bullet"></i>Each file has unique inode number within file system</li>
+                                        <li><i class="fas fa-info icon-bullet"></i>Contains all file information EXCEPT filename</li>
+                                        <li><i class="fas fa-folder icon-bullet"></i>Filenames stored in directory entries, not inodes</li>
+                                    </ul>
+
+                                    <h3>Inode Contents</h3>
+                                    <ul>
+                                        <li><i class="fas fa-lock icon-bullet"></i>File type and permissions (st_mode)</li>
+                                        <li><i class="fas fa-link icon-bullet"></i>Number of hard links (st_nlink)</li>
+                                        <li><i class="fas fa-user icon-bullet"></i>Owner and group IDs (st_uid, st_gid)</li>
+                                        <li><i class="fas fa-expand-alt icon-bullet"></i>File size (st_size)</li>
+                                        <li><i class="fas fa-clock icon-bullet"></i>Timestamps (atime, mtime, ctime)</li>
+                                        <li><i class="fas fa-cube icon-bullet"></i>Pointers to data blocks</li>
+                                    </ul>
+
+                                    <div class="highlight-box">
+                                        <strong>Key Insight:</strong> Multiple filenames can point to same inode (hard links)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <img src="https://cdn.abacus.ai/images/9a4fa3b1-bd3c-4134-a680-a232ebe80b03.png" class="slide-image" alt="Inode Structure">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Inodes are fundamental to UNIX file systems</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 18: Working with Directories -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-folder-open"></i> Working with Directories</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Basic Directory Functions</h3>
+                                    <pre>int mkdir(const char *pathname, mode_t mode);
+int rmdir(const char *pathname);
+int rename(const char *oldname, const char *newname);</pre>
+
+                                    <h3>Important Notes</h3>
+                                    <ul>
+                                        <li><i class="fas fa-check icon-bullet"></i>Always check return values</li>
+                                        <li><i class="fas fa-times icon-bullet"></i>Close directory streams to avoid resource leaks</li>
+                                        <li><i class="fas fa-stop icon-bullet"></i>readdir() returns NULL at end of directory</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Directory Reading Pattern</h3>
+                                    <pre>DIR *dp;
+struct dirent *dirp;
+
+if ((dp = opendir(pathname)) == NULL)
+    err_sys("can't open %s", pathname);
+
+while ((dirp = readdir(dp)) != NULL)
+    printf("%s\n", dirp->d_name);
+
+closedir(dp);</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Proper error handling and resource management are critical</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 19: Current Working Directory Functions -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-map-marker-alt"></i> Current Working Directory Functions</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Key Functions</h3>
+                                    <pre>char *getcwd(char *buf, size_t size);
+int chdir(const char *pathname);
+int fchdir(int filedes);</pre>
+
+                                    <h3>Function Descriptions</h3>
+                                    <ul>
+                                        <li><i class="fas fa-location-arrow icon-bullet"></i><strong>getcwd():</strong> Get current working directory</li>
+                                        <li><i class="fas fa-folder icon-bullet"></i><strong>chdir():</strong> Change to specified directory</li>
+                                        <li><i class="fas fa-file-alt icon-bullet"></i><strong>fchdir():</strong> Change using file descriptor</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Safe getcwd() Usage</h3>
+                                    <pre>char *ptr;
+long size = pathconf(".", _PC_PATH_MAX);
+
+if (size < 0)
+    size = 4096;  /* guess */
+
+if ((ptr = malloc(size)) == NULL)
+    err_sys("malloc error");
+
+if (getcwd(ptr, size) == NULL)
+    err_sys("getcwd error");
+
+printf("cwd = %s\n", ptr);
+free(ptr);</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Always handle dynamic memory allocation properly with getcwd()</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 20: Three Time Values Per File -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-clock"></i> Three Time Values Per File</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Timestamp Types</h3>
+                                    <ol>
+                                        <li><i class="fas fa-eye icon-bullet"></i><strong>st_atime:</strong> Last access time (file read)</li>
+                                        <li><i class="fas fa-edit icon-bullet"></i><strong>st_mtime:</strong> Last modification time (file content changed)</li>
+                                        <li><i class="fas fa-cog icon-bullet"></i><strong>st_ctime:</strong> Last status change time (inode changed)</li>
+                                    </ol>
+
+                                    <h3>Time Modification Functions</h3>
+                                    <pre>int utime(const char *pathname,
+          const struct utimbuf *times);
+int utimes(const char *pathname,
+           const struct timeval times[2]);
+int futimes(int fd,
+            const struct timeval times[2]);</pre>
+
+                                    <h3>Operations Affecting Times</h3>
+                                    <ul>
+                                        <li><i class="fas fa-book-reader icon-bullet"></i>Reading file: updates atime</li>
+                                        <li><i class="fas fa-pen icon-bullet"></i>Writing file: updates mtime and ctime</li>
+                                        <li><i class="fas fa-key icon-bullet"></i>Changing permissions: updates ctime only</li>
+                                        <li><i class="fas fa-link icon-bullet"></i>Creating hard link: updates ctime of target</li>
+                                    </ul>
+
+                                    <div class="highlight-box">
+                                        <strong>Note:</strong> Some systems mount with noatime for performance
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-container animated-item">
+                                <canvas id="timestampChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Understanding timestamps is crucial for backup systems and file synchronization</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 21: File System Limits -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-ruler"></i> File System Limits</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Configuration Functions</h3>
+                                    <pre>long pathconf(const char *pathname, int name);
+long fpathconf(int filedes, int name);</pre>
+
+                                    <h3>Common Limits</h3>
+                                    <ul>
+                                        <li><i class="fas fa-link icon-bullet"></i><strong>_PC_LINK_MAX:</strong> Maximum hard links to file</li>
+                                        <li><i class="fas fa-file icon-bullet"></i><strong>_PC_NAME_MAX:</strong> Maximum filename length</li>
+                                        <li><i class="fas fa-route icon-bullet"></i><strong>_PC_PATH_MAX:</strong> Maximum pathname length</li>
+                                        <li><i class="fas fa-pipe icon-bullet"></i><strong>_PC_PIPE_BUF:</strong> Maximum atomic write to pipe</li>
+                                        <li><i class="fas fa-user-lock icon-bullet"></i><strong>_PC_CHOWN_RESTRICTED:</strong> chown() restricted flag</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Usage Example</h3>
+                                    <pre>printf("Maximum filename length: %ld\n",
+       pathconf("/tmp", _PC_NAME_MAX));
+
+printf("Maximum pathname length: %ld\n",
+       pathconf("/", _PC_PATH_MAX));
+
+printf("Maximum links: %ld\n",
+       pathconf("/tmp", _PC_LINK_MAX));</pre>
+
+                                    <h3>Typical Values</h3>
+                                    <div class="table-wrapper">
+                                        <div class="autofit">
+                                            <table>
+                                                <thead>
+                                                    <tr><th>Limit</th><th>Typical Value</th></tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr><td>NAME_MAX</td><td>255</td></tr>
+                                                    <tr><td>PATH_MAX</td><td>4096</td></tr>
+                                                    <tr><td>LINK_MAX</td><td>65000</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="highlight-box">
+                                        <strong>Portability:</strong> Limits vary across file systems and UNIX variants
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Always check system limits for portable code</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 22: Complete Function Reference -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-book"></i> Complete Function Reference</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="four-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>File Info</h3>
+                                    <ul>
+                                        <li><code>stat</code></li>
+                                        <li><code>lstat</code></li>
+                                        <li><code>fstat</code></li>
+                                    </ul>
+                                    <p>Get file metadata</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Permissions</h3>
+                                    <ul>
+                                        <li><code>access</code></li>
+                                        <li><code>chmod</code></li>
+                                        <li><code>fchmod</code></li>
+                                    </ul>
+                                    <p>Test/change permissions</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Ownership</h3>
+                                    <ul>
+                                        <li><code>chown</code></li>
+                                        <li><code>fchown</code></li>
+                                        <li><code>lchown</code></li>
+                                    </ul>
+                                    <p>Change file ownership</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Links</h3>
+                                    <ul>
+                                        <li><code>link</code></li>
+                                        <li><code>unlink</code></li>
+                                        <li><code>symlink</code></li>
+                                        <li><code>readlink</code></li>
+                                    </ul>
+                                    <p>Manage file links</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="four-column" style="margin-top: var(--standard-gap);">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Directories</h3>
+                                    <ul>
+                                        <li><code>mkdir</code></li>
+                                        <li><code>rmdir</code></li>
+                                        <li><code>opendir</code></li>
+                                        <li><code>readdir</code></li>
+                                        <li><code>closedir</code></li>
+                                    </ul>
+                                    <p>Directory operations</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Working Dir</h3>
+                                    <ul>
+                                        <li><code>getcwd</code></li>
+                                        <li><code>chdir</code></li>
+                                        <li><code>fchdir</code></li>
+                                    </ul>
+                                    <p>Current directory management</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Times</h3>
+                                    <ul>
+                                        <li><code>utime</code></li>
+                                        <li><code>utimes</code></li>
+                                        <li><code>futimes</code></li>
+                                    </ul>
+                                    <p>Modify timestamps</p>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Limits</h3>
+                                    <ul>
+                                        <li><code>pathconf</code></li>
+                                        <li><code>fpathconf</code></li>
+                                    </ul>
+                                    <p>Query system limits</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Group functions by purpose for easier recall</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 23: Practical Implementation Examples -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-laptop-code"></i> Practical Implementation Examples</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="content-card animated-item">
+                            <div class="autofit">
+                                <h3>1. File Type Detection</h3>
+                                <pre>int is_directory(const char *path) {
+    struct stat buf;
+    if (lstat(path, &buf) < 0)
+        return -1;
+    return S_ISDIR(buf.st_mode);
+}</pre>
+
+                                <h3>2. Safe Permission Checking</h3>
+                                <pre>int can_read_file(const char *path) {
+    return access(path, R_OK) == 0;
+}</pre>
+
+                                <h3>3. Recursive Directory Traversal</h3>
+                                <pre>void traverse_directory(const char *path) {
+    DIR *dp = opendir(path);
+    struct dirent *entry;
+    struct stat buf;
+    char fullpath[PATH_MAX];
+
+    while ((entry = readdir(dp)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 ||
+            strcmp(entry->d_name, "..") == 0)
+            continue;
+
+        snprintf(fullpath, sizeof(fullpath), "%s/%s",
+                path, entry->d_name);
+
+        if (lstat(fullpath, &buf) == 0 && S_ISDIR(buf.st_mode))
+            traverse_directory(fullpath);
+    }
+    closedir(dp);
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>These patterns form the building blocks of most file system utilities</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 24: Professional Development Guidelines -->
+            <section>
+                <div class="slide-content">
+                    <div class="slide-header">
+                        <h2><i class="fas fa-shield-alt"></i> Professional Development Guidelines</h2>
+                    </div>
+                    <div class="slide-body">
+                        <div class="two-column">
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Essential Practices</h3>
+                                    <ol>
+                                        <li><i class="fas fa-check-circle icon-bullet"></i>Always check return values from system calls</li>
+                                        <li><i class="fas fa-unlink icon-bullet"></i>Use lstat() instead of stat() when symbolic links matter</li>
+                                        <li><i class="fas fa-stopwatch icon-bullet"></i>Handle race conditions (TOCTOU vulnerabilities)</li>
+                                        <li><i class="fas fa-mask icon-bullet"></i>Set appropriate umask for security</li>
+                                        <li><i class="fas fa-times-circle icon-bullet"></i>Close all resources (file descriptors, directory streams)</li>
+                                        <li><i class="fas fa-route icon-bullet"></i>Validate input paths to prevent directory traversal attacks</li>
+                                        <li><i class="fas fa-lock icon-bullet"></i>Use absolute paths when security matters</li>
+                                    </ol>
+
+                                    <h3>Error Handling Pattern</h3>
+                                    <pre>if (system_call() < 0) {
+    err_sys("system_call failed for %s", filename);
+}</pre>
+                                </div>
+                            </div>
+                            <div class="content-card animated-item">
+                                <div class="autofit">
+                                    <h3>Security Considerations</h3>
+                                    <div class="warning-box">
+                                        <h4><i class="fas fa-exclamation-triangle"></i> Critical Security Issues</h4>
+                                        <ul>
+                                            <li><strong>TOCTOU:</strong> Time of Check, Time of Use vulnerabilities</li>
+                                            <li><strong>Symbolic link attacks:</strong> Malicious links to sensitive files</li>
+                                            <li><strong>Directory traversal:</strong> "../../../etc/passwd" attacks</li>
+                                            <li><strong>Permission escalation:</strong> Improper SUID/SGID usage</li>
+                                        </ul>
+                                    </div>
+
+                                    <img src="https://cdn.abacus.ai/images/70a7e8d6-5fd5-4f43-a412-631b8758b053.png" class="slide-image" alt="Security Best Practices" style="max-height: 200px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-footer">
+                        <span>Security is paramount - always think like an attacker</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- RevealJS JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
+
+    <script>
+        // Initialize Reveal
+        Reveal.initialize({
+            hash: false,
+            center: false,
+            slideNumber: 'c/t',
+            margin: 0.07,
+            width: 1200,
+            height: 700,
+            minScale: 0.2,
+            maxScale: 1.5,
+            transition: 'slide',
+            transitionSpeed: 'default'
+        });
+
+        // Autofit implementation
+        function isOverflown(el) {
+            return el.scrollHeight > el.clientHeight + 1;
+        }
+
+        function shrinkTextIfNeeded(el, options = {}) {
+            const minFont = options.minFontSize || 8;
+            let originalFont = parseFloat(window.getComputedStyle(el).fontSize) || 16;
+
+            if (!isOverflown(el.parentElement) && !isOverflown(el)) {
+                return;
+            }
+
+            let left = minFont;
+            let right = originalFont;
+
+            while (left <= right) {
+                const mid = Math.floor((left + right) / 2);
+                el.style.fontSize = mid + 'px';
+
+                if (isOverflown(el.parentElement) || isOverflown(el)) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                }
+            }
+            let bestFit = right;
+            el.style.fontSize = bestFit + 'px';
+        }
+
+        function applyCustomShrink() {
+            const tableWrappers = document.querySelectorAll('.table-wrapper .autofit');
+            tableWrappers.forEach(el => {
+                shrinkTextIfNeeded(el);
+            });
+
+            const autofitEls = document.querySelectorAll('.autofit');
+            autofitEls.forEach(el => {
+                if (!el.closest('.table-wrapper')) {
+                    shrinkTextIfNeeded(el);
+                }
+            });
+        }
+
+        // Chart initialization
+        function createCharts() {
+            // File Type Distribution Chart (Slide 3)
+            const fileTypeCtx = document.getElementById('fileTypeChart');
+            if (fileTypeCtx) {
+                new Chart(fileTypeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Regular', 'Directory', 'Character', 'Block', 'FIFO', 'Socket', 'Symlink'],
+                        datasets: [{
+                            data: [70, 15, 5, 3, 2, 3, 2],
+                            backgroundColor: [
+                                '#3b82f6', '#60a5fa', '#93c5fd', '#c3ddfd',
+                                '#dbeafe', '#eff6ff', '#1e3a8a'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    color: '#1f2937',
+                                    font: { size: 14 }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'File Type Distribution in Typical System',
+                                color: '#1f2937',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Link Comparison Chart (Slide 8)
+            const linkCtx = document.getElementById('linkComparisonChart');
+            if (linkCtx) {
+                new Chart(linkCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Hard Links', 'Symbolic Links'],
+                        datasets: [{
+                            label: 'Advantages',
+                            data: [3, 5],
+                            backgroundColor: '#10b981',
+                            borderColor: '#059669',
+                            borderWidth: 1
+                        }, {
+                            label: 'Limitations',
+                            data: [4, 2],
+                            backgroundColor: '#f59e0b',
+                            borderColor: '#d97706',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#1f2937' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Link Type Trade-offs',
+                                color: '#1f2937',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#1f2937' },
+                                grid: { color: 'rgba(31, 41, 55, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#1f2937' },
+                                grid: { color: 'rgba(31, 41, 55, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // umask Chart (Slide 13)
+            const umaskCtx = document.getElementById('umaskChart');
+            if (umaskCtx) {
+                new Chart(umaskCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['umask 022', 'umask 077', 'umask 002'],
+                        datasets: [{
+                            label: 'File Permissions',
+                            data: [644, 600, 664],
+                            backgroundColor: '#3b82f6',
+                            borderColor: '#1e3a8a',
+                            borderWidth: 1
+                        }, {
+                            label: 'Directory Permissions',
+                            data: [755, 700, 775],
+                            backgroundColor: '#60a5fa',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#1f2937' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Common umask Values and Results',
+                                color: '#1f2937',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#1f2937' },
+                                grid: { color: 'rgba(31, 41, 55, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#1f2937' },
+                                grid: { color: 'rgba(31, 41, 55, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Timestamp Chart (Slide 20)
+            const timestampCtx = document.getElementById('timestampChart');
+            if (timestampCtx) {
+                new Chart(timestampCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['File Creation', 'First Read', 'Content Change', 'Permission Change'],
+                        datasets: [{
+                            label: 'atime',
+                            data: [1, 2, 2, 2],
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            fill: false
+                        }, {
+                            label: 'mtime',
+                            data: [1, 1, 3, 3],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: false
+                        }, {
+                            label: 'ctime',
+                            data: [1, 1, 3, 4],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderWidth: 3,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#1f2937' }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Timestamp Changes Over File Operations',
+                                color: '#1f2937',
+                                font: { size: 16, weight: 'bold' }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#1f2937' },
+                                grid: { color: 'rgba(31, 41, 55, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#1f2937' },
+                                grid: { color: 'rgba(31, 41, 55, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        Reveal.on('ready', function () {
+            createCharts();
+            setTimeout(applyCustomShrink, 500);
+        });
+
+        Reveal.on('slidechanged', function () {
+            setTimeout(applyCustomShrink, 500);
+        });
+
+        Reveal.on('resize', function () {
+            setTimeout(applyCustomShrink, 500);
+        });
+    </script>
+</body>
+</html>
